@@ -1,0 +1,127 @@
+﻿@page
+@model MateInTwoMovesModel
+@{
+    ViewData["Title"] = "Mate in Two Moves";
+}
+
+<h5>Mate in Two Moves</h5>
+
+<button class="btn btn-primary" onclick="restartGame()">Restart</button>
+
+<div id="move-counter" style="margin-top: 10px; font-size: 15px;">Moves: 0</div>
+
+<div id="status" style="margin-top: 10px; font-size: 15px;"></div>
+
+<div id="board" style="width: 350px; margin-top:20px"></div>
+
+<div style="margin-top: 10px;">
+    <a asp-page="/Index">Back to Index</a>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://unpkg.com/@@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.11.0/chess.min.js"></script>
+    <script>
+        var board, game;
+        var moveCounter = 0;
+        var puzzleFEN = 'r2kr3/2p2Rp1/1pPpB2b/4p2p/8/6P1/PPP4P/1K1R4 w - - 0 1';
+
+        // Initialize the chessboard
+        board = Chessboard('board', {
+            draggable: true,
+            position: puzzleFEN,
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd
+        });
+
+        game = new Chess();
+        game.load(puzzleFEN);
+
+        // Prevent moving pieces if the game is over or if not the player's piece
+        function onDragStart(source, piece, position, orientation) {
+            if (game.in_checkmate() === true || game.in_draw() === true || piece.search(/^b/) !== -1) {
+                return false;
+            }
+        }
+
+        // Handle the piece drop
+        function onDrop(source, target) {
+            if (moveCounter >= 2) return 'snapback';
+
+            // See if the move is legal
+            var move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q' // Always promote to a queen for simplicity
+            });
+
+            // Illegal move
+            if (move === null) return 'snapback';
+          
+            moveCounter++;
+            document.getElementById('move-counter').innerText = 'Moves: ' + moveCounter;
+
+            // Check if the game is over
+            updateStatus();
+
+            if (!game.in_checkmate() && moveCounter < 2) {
+                // Simulate opponent's move
+                simulateOpponentMove();
+                updateStatus();
+            }
+
+            if (moveCounter >= 2 && !game.in_checkmate()) {
+                document.getElementById('status').innerText = 'Move limit reached. Better luck next time!';
+                if (moveCounter >= 2) return 'snapback';
+            }
+        }
+
+        function simulateOpponentMove() {
+            var possibleMoves = game.moves();
+            if (possibleMoves.length === 0) return;
+
+            // Select a random legal move for the opponent
+            var randomIdx = Math.floor(Math.random() * possibleMoves.length);
+            game.move(possibleMoves[randomIdx]);
+            board.position(game.fen());
+        }
+
+        // Update the board position after the piece snap
+        function onSnapEnd() {
+            board.position(game.fen());
+        }
+
+        function updateStatus() {
+            var status = '';
+
+            if (game.in_checkmate()) {
+                status = 'Checkmate! Well done!';
+            } else if (game.in_draw()) {
+                status = 'Draw!';
+            } else {
+                var moveColor = 'White';
+                if (game.turn() === 'b') {
+                    moveColor = 'Black';
+                }
+                status = moveColor + ' to move';
+                if (game.in_check()) {
+                    status += ', ' + moveColor + ' is in check';
+                }
+            }
+
+            document.getElementById('status').innerHTML = status;
+        }
+
+        function restartGame() {
+            game.load(puzzleFEN);
+            board.position(puzzleFEN);
+            moveCounter = 0;
+            document.getElementById('move-counter').innerText = 'Moves: ' + moveCounter;
+            document.getElementById('status').innerHTML = '';
+        }
+
+        updateStatus();
+    </script>
+}

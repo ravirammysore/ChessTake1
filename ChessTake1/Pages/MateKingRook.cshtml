@@ -1,0 +1,87 @@
+﻿@page
+@model MateKingRookModel
+@{
+    ViewData["Title"] = "Mate in one move using king and rook";
+}
+
+<h5>Mate in one move using king and rook</h5>
+
+<button class="btn btn-primary" onclick="restartGame()">Restart</button>
+
+<div id="status" style="margin-top: 10px; font-size: 15px;"></div>
+
+<div id="board" style="width: 400px; margin-top:20px"></div>
+
+<div style="margin-top: 20px;">
+    <a asp-page="/Index">Back to Index</a>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://unpkg.com/@@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.11.0/chess.min.js"></script>
+    
+    <script>
+        var board, game;
+        var puzzleFEN = '1k6/6R1/1K6/8/8/8/8/8 w - - 0 1';
+
+        // Initialize the chessboard
+        board = Chessboard('board', {
+            draggable: true,
+            position: puzzleFEN,
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd
+        });
+
+        game = new Chess();
+        game.load(puzzleFEN);
+
+        // Prevent moving pieces if the game is over or if not the player's piece
+        function onDragStart(source, piece, position, orientation) {
+            if (game.in_checkmate() === true || game.in_draw() === true ||
+                piece.search(/^b/) !== -1) {
+                return false;
+            }
+        }
+
+        // Handle the piece drop
+        function onDrop(source, target) {
+            // See if the move is legal
+            var move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q' // Always promote to a queen for simplicity
+            });
+
+            // Illegal move
+            if (move === null) return 'snapback';
+
+            // Check if the game is over
+            updateStatus();
+        }
+
+        // Update the board position after the piece snap
+        function onSnapEnd() {
+            board.position(game.fen());
+        }
+
+        function updateStatus() {
+            var status = '';
+
+            if (game.in_checkmate()) {
+                status = 'Checkmate! Well done!';
+            } else {
+                status = 'Better luck next time :(';
+            }
+
+            document.getElementById('status').innerHTML = status;
+        }
+
+        function restartGame() {
+            game.load(puzzleFEN);
+            board.position(puzzleFEN);
+            document.getElementById('status').innerHTML = '';
+        }        
+    </script>
+}

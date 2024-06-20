@@ -1,0 +1,31 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Create a checkmate in just one move";
+}
+<h2>Chethan Chess Academy</h2>
+<br />
+<h4>Create a checkmate in just one move</h4>
+<ul class="list-unstyled">
+    <li>
+        <a asp-page="/MateKingRook">Mate in one move using king and rook</a>
+        <p>Give checkmate to the black king using your king and rook.</p>
+    </li>
+    <li>
+        <a asp-page="/MateTwoRooksKing">Mate in one move using two rooks and king</a>
+        <p>Give checkmate to the black king using two rooks and your king.</p>
+    </li>
+    <li>
+        <a asp-page="/MateKingQueen">Mate in one move using king and queen</a>
+        <p>Give checkmate to the black king using your queen and king.</p>
+    </li>
+</ul>
+
+<h4>Create a checkmate in two moves</h4>
+
+<ul class="list-unstyled">
+    <li>
+        <a asp-page="/MateInTwoMoves">Mate in two moves</a>
+        <p>Give checkmate to the black king using a given arrangement.</p>
+    </li>    
+</ul>
